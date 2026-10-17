@@ -406,15 +406,15 @@ function animateRadar(now) {
   if (now - lastSweepTime >= 2000) {
     lastSweepTime = now;
 
-    targetAngle = (targetAngle + Math.random() * 30 - 15 + 360) % 360;
+    targetAngle = (targetAngle + Math.random() * 100 - 50 + 360) % 360;
 
-    targetDistance = Math.max(
-      18,
-      Math.min(32, (targetDistance || 27) + Math.random() * 6 - 3)
-    );
+targetDistance = Math.max(
+  18,
+  Math.min(32, (targetDistance || 27) + Math.random() * 6 - 3)
+);
 
-    targetX = 50 + Math.sin(targetAngle * Math.PI / 180) * targetDistance;
-    targetY = 30 + Math.sin(targetAngle * Math.PI / 180) * 12;
+targetX = 50 + Math.sin(targetAngle * Math.PI / 180) * targetDistance;
+targetY = 30 - Math.abs(Math.cos(targetAngle * Math.PI / 180)) * 18;
 
     target.style.setProperty("--target-x", `${targetX}%`);
     target.style.setProperty("--target-y", `${targetY}%`);
@@ -428,7 +428,7 @@ function animateRadar(now) {
   lastFlashTime = now;
 }
 
-if (signalActive && lastFlashTime > 0 && now - lastFlashTime < 150) {
+if (signalActive && lastFlashTime > 0 && now - lastFlashTime < 200) {
   target.classList.add("flash");
 } else {
   target.classList.remove("flash");
