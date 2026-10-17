@@ -1,0 +1,153 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PKE Meter - Prueba de brújula</title>
+  <style>
+    body {
+      background: #07110e;
+      color: #57ffbd;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 24px 12px;
+    }
+    h1 { font-size: 25px; }
+    #grados {
+      font-size: 58px;
+      font-weight: bold;
+      margin: 25px 0 8px;
+    }
+    #direccion {
+      font-size: 25px;
+      margin: 8px;
+    }
+    #estado {
+      color: #fff;
+      line-height: 1.5;
+      margin: 20px auto;
+      max-width: 380px;
+    }
+    button {
+      background: #123c30;
+      color: #57ffbd;
+      border: 2px solid #57ffbd;
+      border-radius: 10px;
+      padding: 15px 20px;
+      font-size: 17px;
+      margin: 8px;
+    }
+    #aguja {
+      font-size: 100px;
+      display: inline-block;
+      transform: rotate(0deg);
+      margin: 15px;
+    }
+  </style>
+</head>
+<body>
+  <h1>👻 PKE METER</h1>
+  <p>PRUEBA DE BRÚJULA</p>
+
+  <div id="grados">---°</div>
+  <div id="direccion">Esperando sensor</div>
+  <div id="aguja">↑</div>
+
+  <button id="iniciar">ACTIVAR BRÚJULA</button>
+  <button id="calibrar">REINICIAR</button>
+
+  <div id="estado">
+    Pulsa ACTIVAR BRÚJULA y acepta el permiso si aparece.
+  </div>
+
+<script>
+  const grados = document.getElementById("grados");
+  const direccion = document.getElementById("direccion");
+  const aguja = document.getElementById("aguja");
+  const estado = document.getElementById("estado");
+
+  let activa = false;
+  let ultimoGrado = null;
+
+  function mostrar(grado) {
+    if (!Number.isFinite(grado)) return;
+
+    grado = ((grado % 360) + 360) % 360;
+    ultimoGrado = grado;
+
+    grados.textContent = Math.round(grado) + "°";
+
+    let puntos = [
+      "Norte", "Noreste", "Este", "Sureste",
+      "Sur", "Suroeste", "Oeste", "Noroeste"
+    ];
+    let indice = Math.round(grado / 45) % 8;
+
+    direccion.textContent = puntos[indice];
+
+    // La aguja representa el rumbo hacia el que apunta el teléfono.
+    aguja.style.transform = `rotate(${grado}deg)`;
+    estado.textContent =
+      "Sensor activo. Gira el teléfono lentamente para comprobar el rumbo.";
+  }
+
+  function recibirOrientacion(e) {
+    // En Android/Chrome, alpha no es el rumbo de la brújula.
+    // Usamos brújula absoluta cuando está disponible.
+    if (typeof e.webkitCompassHeading === "number") {
+      mostrar(e.webkitCompassHeading);
+    } else if (e.absolute && typeof e.alpha === "number") {
+      mostrar((360 - e.alpha) % 360);
+    }
+  }
+
+  async function iniciar() {
+    if (activa) return;
+
+    if (!("DeviceOrientationEvent" in window)) {
+      estado.textContent = "Este navegador no ofrece el sensor de orientación.";
+      return;
+    }
+
+    try {
+      if (typeof DeviceOrientationEvent.requestPermission === "function") {
+        const permiso = await DeviceOrientationEvent.requestPermission();
+        if (permiso !== "granted") {
+          estado.textContent = "Permiso de orientación no concedido.";
+          return;
+        }
+      }
+
+      activa = true;
+      window.addEventListener(
+        "deviceorientationabsolute",
+        recibirOrientacion,
+        true
+      );
+      window.addEventListener(
+        "deviceorientation",
+        recibirOrientacion,
+        true
+      );
+
+      estado.textContent =
+        "Solicitud enviada. Mueve el teléfono lentamente y observa si aparecen grados.";
+    } catch (error) {
+      estado.textContent = "No se pudo activar el sensor: " + error.message;
+    }
+  }
+
+  document.getElementById("iniciar").addEventListener("click", iniciar);
+
+  document.getElementById("calibrar").addEventListener("click", () => {
+    grados.textContent = "---°";
+    direccion.textContent = "Esperando sensor";
+    aguja.style.transform = "rotate(0deg)";
+    ultimoGrado = null;
+    estado.textContent =
+      "Pulsa ACTIVAR BRÚJULA para probar otra vez.";
+  });
+</script>
+</body>
+</html>
