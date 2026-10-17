@@ -406,6 +406,33 @@ function animateRadar(now) {
 
   
 
+
+  // El punto destella únicamente si la detección está activa
+  // y el barrido pasa por su posición.
+  const radarRect = radarElement.getBoundingClientRect();
+const targetRect = target.getBoundingClientRect();
+
+const radarCenterX = radarRect.left + radarRect.width / 2;
+const radarCenterY = radarRect.top + radarRect.height / 2;
+
+const targetCenterX = targetRect.left + targetRect.width / 2;
+const targetCenterY = targetRect.top + targetRect.height / 2;
+
+let pointAngle = Math.atan2(
+  targetCenterX - radarCenterX,
+  radarCenterY - targetCenterY
+) * 180 / Math.PI;
+
+pointAngle = (pointAngle + 360) % 360;
+
+// La parte brillante del barrido está aproximadamente 5° detrás.
+const visibleSweepAngle = (sweepAngle + 355) % 360;
+
+const sweepDifference = angleDifference(
+  visibleSweepAngle,
+  pointAngle
+);
+
 // Detectar cuándo el barrido alcanza el punto.
 if (
   signalActive &&
@@ -434,40 +461,11 @@ if (targetMoving && now - targetMoveTime >= 250) {
   target.classList.remove("flash");
 }
 
-  // El punto destella únicamente si la detección está activa
-  // y el barrido pasa por su posición.
-  const radarRect = radarElement.getBoundingClientRect();
-const targetRect = target.getBoundingClientRect();
-
-const radarCenterX = radarRect.left + radarRect.width / 2;
-const radarCenterY = radarRect.top + radarRect.height / 2;
-
-const targetCenterX = targetRect.left + targetRect.width / 2;
-const targetCenterY = targetRect.top + targetRect.height / 2;
-
-let pointAngle = Math.atan2(
-  targetCenterX - radarCenterX,
-  radarCenterY - targetCenterY
-) * 180 / Math.PI;
-
-pointAngle = (pointAngle + 360) % 360;
-
-// La parte brillante del barrido está aproximadamente 5° detrás.
-const visibleSweepAngle = (sweepAngle + 355) % 360;
-
-const sweepDifference = angleDifference(
-  visibleSweepAngle,
-  pointAngle
-);
 // Preparar una nueva posición cuando termina el desplazamiento.
 if (!targetMoving && now - lastSweepTime >= 2000) {
   lastSweepTime = now;
 }
-
-  if (signalActive && sweepDifference <= 14) {
-  lastFlashTime = now;
-}
-  
+ 
 
   requestAnimationFrame(animateRadar);
 }
