@@ -124,17 +124,35 @@ body {
 .south { bottom: 8px; left: 50%; transform: translateX(-50%); }
 .west { left: 8px; top: 50%; transform: translateY(-50%); }
 
+
 .target {
   position: absolute;
   top: 28%;
   left: 66%;
-  width: 8px;
-  height: 8px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   background: #69fff6;
-  box-shadow: 0 0 15px 5px #14f4dc80;
-  animation: targetPulse 1.5s infinite;
+  box-shadow: 0 0 20px 8px #14f4dc80;
+  animation: targetPulse 1s infinite;
+  opacity: 0;
+  transform: scale(0.5);
+  transition: opacity 0.2s, transform 0.2s;
+  z-index: 2;
 }
+
+.target.trace {
+  opacity: 0.7;
+  transform: scale(0.7);
+}
+
+.target.detected {
+  opacity: 1;
+  transform: scale(1.3);
+  background: #b6ffe0;
+  box-shadow: 0 0 25px 12px #14f4dc;
+}
+
 
 .metrics {
   width: 100%;
@@ -249,6 +267,7 @@ body {
 const pke = document.getElementById("pke");
 const signal = document.getElementById("signal");
 const status = document.getElementById("status");
+const target = document.querySelector(".target");
 const headingDisplay = document.getElementById("heading");
 const targetDisplay = document.getElementById("targetHeading");
 const startButton = document.getElementById("startCompass");
@@ -266,6 +285,7 @@ function angleDifference(a, b) {
   return Math.abs(((a - b + 540) % 360) - 180);
 }
 
+
 function updateDetection() {
   if (currentHeading === null || targetHeading === null) return;
 
@@ -273,20 +293,26 @@ function updateDetection() {
 
   headingDisplay.textContent = Math.round(currentHeading);
 
+  // Limpiar el estado anterior del punto.
+  target.classList.remove("trace", "detected");
+
   if (difference <= 8) {
-    status.textContent = "● ENTITY DETECTED";
+    status.textContent = "● PKE SIGNAL DETECTED";
     signal.textContent = "DETECTED";
     pke.textContent = "100";
+    target.classList.add("detected");
   } else if (difference <= 25) {
     status.textContent = "● ENTITY TRACE";
     signal.textContent = "TRACE";
     pke.textContent = String(Math.round(80 - difference)).padStart(3, "0");
+    target.classList.add("trace");
   } else {
     status.textContent = "● SCANNING AREA";
     signal.textContent = "LOW";
     pke.textContent = String(Math.max(0, Math.round(30 - difference / 3))).padStart(3, "0");
   }
 }
+
 
 function onOrientation(event) {
   let heading = null;
