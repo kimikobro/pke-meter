@@ -296,6 +296,8 @@ let targetAngle = 0;
 let targetDistance = 0;
 let signalActive = false;
 let lastFlashTime = 0;
+let targetMoving = false;
+let targetMoveTime = 0;
 
 function normalize(deg) {
   return ((deg % 360) + 360) % 360;
@@ -402,23 +404,38 @@ function animateRadar(now) {
     `${sweepAngle}deg`
   );
 
-  // Mover ligeramente el punto al completar cada vuelta.
-  if (now - lastSweepTime >= 2000) {
-    lastSweepTime = now;
+  // Preparar una nueva posición cuando termina el desplazamiento.
+if (!targetMoving && now - lastSweepTime >= 2000) {
+  lastSweepTime = now;
+}
 
-    targetAngle = (targetAngle + Math.random() * 100 - 50 + 360) % 360;
+// Detectar cuándo el barrido alcanza el punto.
+if (
+  signalActive &&
+  !targetMoving &&
+  sweepDifference <= 14
+) {
+  lastFlashTime = now;
+  target.classList.add("flash");
+  targetMoving = true;
+  targetMoveTime = now;
+}
 
-targetDistance = Math.max(
-  18,
-  Math.min(32, (targetDistance || 27) + Math.random() * 6 - 3)
-);
+// Después del destello, deslizar el punto a otra posición.
+if (targetMoving && now - targetMoveTime >= 250) {
+  targetMoving = false;
 
-targetX = 50 + Math.sin(targetAngle * Math.PI / 180) * targetDistance;
-targetY = 30 - Math.abs(Math.cos(targetAngle * Math.PI / 180)) * 18;
+  targetAngle = Math.random() * 180 - 90;
+  targetDistance = 18 + Math.random() * 14;
 
-    target.style.setProperty("--target-x", `${targetX}%`);
-    target.style.setProperty("--target-y", `${targetY}%`);
-  }
+  targetX = 50 + Math.sin(targetAngle * Math.PI / 180) * targetDistance;
+  targetY = 30 - Math.abs(Math.cos(targetAngle * Math.PI / 180)) * 18;
+
+  target.style.setProperty("--target-x", `${targetX}%`);
+  target.style.setProperty("--target-y", `${targetY}%`);
+
+  target.classList.remove("flash");
+}
 
   // El punto destella únicamente si la detección está activa
   // y el barrido pasa por su posición.
@@ -449,12 +466,7 @@ const sweepDifference = angleDifference(
   if (signalActive && sweepDifference <= 14) {
   lastFlashTime = now;
 }
-
-if (signalActive && lastFlashTime > 0 && now - lastFlashTime < 200) {
-  target.classList.add("flash");
-} else {
-  target.classList.remove("flash");
-}
+  
 
   requestAnimationFrame(animateRadar);
 }
