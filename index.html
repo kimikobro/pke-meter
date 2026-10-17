@@ -425,10 +425,14 @@ function animateRadar(now) {
   const sweepDifference = angleDifference(sweepAngle, targetAngle);
 
   if (signalActive && sweepDifference <= 14) {
-    target.classList.add("flash");
-  } else {
-    target.classList.remove("flash");
-  }
+  lastFlashTime = now;
+}
+
+if (signalActive && lastFlashTime > 0 && now - lastFlashTime < 350) {
+  target.classList.add("flash");
+} else {
+  target.classList.remove("flash");
+}
 
   requestAnimationFrame(animateRadar);
 }
