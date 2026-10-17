@@ -195,7 +195,20 @@ body {
     <p>PARANORMAL DETECTION SYSTEM</p>
   </header>
 
-  <div class="status">● SCANNING AREA</div>
+  <div class="status" id="status">● SCANNING AREA</div>
+
+<div style="text-align:center;font-size:12px;line-height:1.8">
+  HEADING: <strong id="heading">---</strong>°
+  <br>
+  TARGET: <strong id="targetHeading">---</strong>°
+  <br>
+  <button id="startCompass" style="padding:10px;background:#09251a;color:#65ffad;border:1px solid #36eaa0;font-family:Consolas,monospace">
+    ACTIVATE PKE
+  </button>
+  <button id="setTarget" style="padding:10px;background:#09251a;color:#65ffad;border:1px solid #36eaa0;font-family:Consolas,monospace">
+    SET DIRECTION
+  </button>
+</div>
 
   <div class="radar">
     <span class="axis north">N</span>
@@ -208,11 +221,11 @@ body {
   <div class="metrics">
     <div class="metric">
       <span>PKE LEVEL</span>
-      <strong id="pke">018</strong>
+      <strong id="pke">000</strong>
     </div>
     <div class="metric">
       <span>ENTITY SIGNAL</span>
-      <strong id="signal">LOW</strong>
+      <strong id="signal">SEARCHING</strong>
     </div>
     <div class="metric">
       <span>SCAN MODE</span>
@@ -231,21 +244,105 @@ body {
 
 </div>
 
+
 <script>
 const pke = document.getElementById("pke");
 const signal = document.getElementById("signal");
+const status = document.getElementById("status");
+const headingDisplay = document.getElementById("heading");
+const targetDisplay = document.getElementById("targetHeading");
+const startButton = document.getElementById("startCompass");
+const targetButton = document.getElementById("setTarget");
 
-function updateReadings() {
-  pke.textContent = String(
-    Math.floor(12 + Math.random() * 15)
-  ).padStart(3, "0");
+let currentHeading = null;
+let targetHeading = null;
+let compassActive = false;
 
-  const signals = ["LOW", "LOW", "LOW", "TRACE"];
-  signal.textContent =
-    signals[Math.floor(Math.random() * signals.length)];
+function normalize(deg) {
+  return ((deg % 360) + 360) % 360;
 }
 
-setInterval(updateReadings, 1200);
+function angleDifference(a, b) {
+  return Math.abs(((a - b + 540) % 360) - 180);
+}
+
+function updateDetection() {
+  if (currentHeading === null || targetHeading === null) return;
+
+  const difference = angleDifference(currentHeading, targetHeading);
+
+  headingDisplay.textContent = Math.round(currentHeading);
+
+  if (difference <= 8) {
+    status.textContent = "● ENTITY DETECTED";
+    signal.textContent = "DETECTED";
+    pke.textContent = "100";
+  } else if (difference <= 25) {
+    status.textContent = "● ENTITY TRACE";
+    signal.textContent = "TRACE";
+    pke.textContent = String(Math.round(80 - difference)).padStart(3, "0");
+  } else {
+    status.textContent = "● SCANNING AREA";
+    signal.textContent = "LOW";
+    pke.textContent = String(Math.max(0, Math.round(30 - difference / 3))).padStart(3, "0");
+  }
+}
+
+function onOrientation(event) {
+  let heading = null;
+
+  // Chrome en Android puede exponer el rumbo de brújula así.
+  if (typeof event.webkitCompassHeading === "number") {
+    heading = event.webkitCompassHeading;
+  } else if (event.absolute && typeof event.alpha === "number") {
+    heading = 360 - event.alpha;
+  }
+
+  if (heading === null || !Number.isFinite(heading)) return;
+
+  currentHeading = normalize(heading);
+  updateDetection();
+}
+
+async function startCompass() {
+  if (compassActive) return;
+
+  if (!("DeviceOrientationEvent" in window)) {
+    status.textContent = "● SENSOR NOT AVAILABLE";
+    return;
+  }
+
+  try {
+    if (typeof DeviceOrientationEvent.requestPermission === "function") {
+      const permission = await DeviceOrientationEvent.requestPermission();
+      if (permission !== "granted") {
+        status.textContent = "● SENSOR PERMISSION DENIED";
+        return;
+      }
+    }
+
+    window.addEventListener("deviceorientationabsolute", onOrientation, true);
+    window.addEventListener("deviceorientation", onOrientation, true);
+    compassActive = true;
+    status.textContent = "● CALIBRATING COMPASS";
+  } catch (error) {
+    status.textContent = "● SENSOR ERROR";
+  }
+}
+
+function setTarget() {
+  if (currentHeading === null) {
+    status.textContent = "● ACTIVATE COMPASS FIRST";
+    return;
+  }
+
+  targetHeading = currentHeading;
+  targetDisplay.textContent = Math.round(targetHeading);
+  updateDetection();
+}
+
+startButton.addEventListener("click", startCompass);
+targetButton.addEventListener("click", setTarget);
 </script>
 </body>
 </html>
