@@ -89,12 +89,14 @@ body {
   position: absolute;
   inset: 0;
   background: conic-gradient(
-    from 0deg,
-    #48ffb6a0 0deg,
-    #0cff8730 25deg,
-    transparent 60deg,
-    transparent 360deg
-  );
+  from 0deg,
+  transparent 0deg,
+  transparent 300deg,
+  #0cff8730 330deg,
+  #48ffb6a0 350deg,
+  #48ffb6a0 355deg,
+  transparent 360deg
+);
   border-radius: 50%;
   transform: rotate(var(--sweep-angle, 0deg));
 }
@@ -139,7 +141,7 @@ body {
   transition:
     top 0.7s ease,
     left 0.7s ease,
-    opacity 0.2s,
+    opacity 0.35s,
     transform 0.2s,
     box-shadow 0.2s;
   z-index: 2;
