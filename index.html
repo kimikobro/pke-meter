@@ -90,14 +90,13 @@ body {
   inset: 0;
   background: conic-gradient(
     from 0deg,
-    transparent 0deg,
-    transparent 290deg,
-    #0cff8730 325deg,
-    #48ffb6a0 355deg,
+    #48ffb6a0 0deg,
+    #0cff8730 25deg,
+    transparent 60deg,
     transparent 360deg
   );
   border-radius: 50%;
-  animation: sweep 2s linear infinite;
+  transform: rotate(var(--sweep-angle, 0deg));
 }
 
 .radar::after {
@@ -125,33 +124,44 @@ body {
 .west { left: 8px; top: 50%; transform: translateY(-50%); }
 
 
+
 .target {
   position: absolute;
-  top: 28%;
-  left: 66%;
+  top: var(--target-y, 28%);
+  left: var(--target-x, 66%);
   width: 24px;
   height: 24px;
   border-radius: 50%;
   background: #69fff6;
   box-shadow: 0 0 20px 8px #14f4dc80;
-  animation: targetPulse 1s infinite;
   opacity: 0;
-  transform: scale(0.5);
-  transition: opacity 0.2s, transform 0.2s;
+  transform: translate(-50%, -50%) scale(0.5);
+  transition:
+    top 0.7s ease,
+    left 0.7s ease,
+    opacity 0.2s,
+    transform 0.2s,
+    box-shadow 0.2s;
   z-index: 2;
+  pointer-events: none;
 }
 
 .target.trace {
-  opacity: 0.7;
-  transform: scale(0.7);
+  opacity: 0;
 }
 
 .target.detected {
+  opacity: 0;
+}
+
+.target.flash {
   opacity: 1;
-  transform: scale(1.3);
+  transform: translate(-50%, -50%) scale(1.5);
   background: #b6ffe0;
   box-shadow: 0 0 25px 12px #14f4dc;
 }
+
+
 
 
 .metrics {
@@ -276,6 +286,14 @@ const targetButton = document.getElementById("setTarget");
 let currentHeading = null;
 let targetHeading = null;
 let compassActive = false;
+let sweepAngle = 0;
+let lastSweepTime = 0;
+let targetX = 66;
+let targetY = 28;
+let targetAngle = 0;
+let targetDistance = 0;
+let signalActive = false;
+let lastFlashTime = 0;
 
 function normalize(deg) {
   return ((deg % 360) + 360) % 360;
@@ -290,18 +308,19 @@ function updateDetection() {
   if (currentHeading === null || targetHeading === null) return;
 
   const difference = angleDifference(currentHeading, targetHeading);
+  signalActive = difference <= 12;
 
   headingDisplay.textContent = Math.round(currentHeading);
 
-  // Limpiar el estado anterior del punto.
-  target.classList.remove("trace", "detected");
+  // El punto solo destella cuando el barrido lo alcanza.
+target.classList.remove("trace", "detected", "flash");
 
-  if (difference <= 8) {
+  if (difference <= 4) {
     status.textContent = "● PKE SIGNAL DETECTED";
     signal.textContent = "DETECTED";
     pke.textContent = "100";
     target.classList.add("detected");
-  } else if (difference <= 25) {
+  } else if (difference <= 11) {
     status.textContent = "● ENTITY TRACE";
     signal.textContent = "TRACE";
     pke.textContent = String(Math.round(80 - difference)).padStart(3, "0");
@@ -369,6 +388,51 @@ function setTarget() {
 
 startButton.addEventListener("click", startCompass);
 targetButton.addEventListener("click", setTarget);
+
+const radarElement = document.querySelector(".radar");
+
+function animateRadar(now) {
+  // Giro continuo del barrido: una vuelta cada 2 segundos.
+  sweepAngle = ((now % 2000) / 2000) * 360;
+
+  radarElement.style.setProperty(
+    "--sweep-angle",
+    `${sweepAngle}deg`
+  );
+
+  // Mover ligeramente el punto al completar cada vuelta.
+  if (now - lastSweepTime >= 2000) {
+    lastSweepTime = now;
+
+    targetAngle = (targetAngle + Math.random() * 30 - 15 + 360) % 360;
+
+    targetDistance = Math.max(
+      18,
+      Math.min(32, (targetDistance || 27) + Math.random() * 6 - 3)
+    );
+
+    targetX = 50 + Math.sin(targetAngle * Math.PI / 180) * targetDistance;
+    targetY = 50 - Math.cos(targetAngle * Math.PI / 180) * targetDistance;
+
+    target.style.setProperty("--target-x", `${targetX}%`);
+    target.style.setProperty("--target-y", `${targetY}%`);
+  }
+
+  // El punto destella únicamente si la detección está activa
+  // y el barrido pasa por su posición.
+  const sweepDifference = angleDifference(sweepAngle, targetAngle);
+
+  if (signalActive && sweepDifference <= 7) {
+    target.classList.add("flash");
+  } else {
+    target.classList.remove("flash");
+  }
+
+  requestAnimationFrame(animateRadar);
+}
+
+requestAnimationFrame(animateRadar);
+
 </script>
 </body>
 </html>
