@@ -455,11 +455,11 @@ if (targetMoving && now - targetMoveTime >= 180) {
 
   // Desplazamiento corto desde su posición actual.
   targetX = Math.max(15, Math.min(85,
-    targetX + (Math.random() * 6 - 3)
+    targetX + (Math.random() * 10 - 5
   ));
 
   targetY = Math.max(12, Math.min(42,
-    targetY + (Math.random() * 6 - 3)
+    targetY + (Math.random() * 10 - 5)
   ));
 
   target.style.setProperty("--target-x", `${targetX}%`);
@@ -468,7 +468,7 @@ if (targetMoving && now - targetMoveTime >= 180) {
   // Desaparecer poco después del movimiento.
   setTimeout(() => {
     target.classList.remove("flash");
-  }, 200;
+  }, 250;
 }
 
 // Preparar la siguiente detección cuando la barra se aleje.
