@@ -404,10 +404,7 @@ function animateRadar(now) {
     `${sweepAngle}deg`
   );
 
-  // Preparar una nueva posición cuando termina el desplazamiento.
-if (!targetMoving && now - lastSweepTime >= 2000) {
-  lastSweepTime = now;
-}
+  
 
 // Detectar cuándo el barrido alcanza el punto.
 if (
@@ -462,6 +459,10 @@ const sweepDifference = angleDifference(
   visibleSweepAngle,
   pointAngle
 );
+// Preparar una nueva posición cuando termina el desplazamiento.
+if (!targetMoving && now - lastSweepTime >= 2000) {
+  lastSweepTime = now;
+}
 
   if (signalActive && sweepDifference <= 14) {
   lastFlashTime = now;
