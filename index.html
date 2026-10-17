@@ -414,7 +414,7 @@ function animateRadar(now) {
     );
 
     targetX = 50 + Math.sin(targetAngle * Math.PI / 180) * targetDistance;
-    targetY = 50 - Math.cos(targetAngle * Math.PI / 180) * targetDistance;
+    targetY = 15 + Math.random() * 30;
 
     target.style.setProperty("--target-x", `${targetX}%`);
     target.style.setProperty("--target-y", `${targetY}%`);
