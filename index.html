@@ -1,0 +1,251 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PKE Meter</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: #030906;
+  color: #65ffad;
+  font-family: Consolas, monospace;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.app {
+  width: 100%;
+  max-width: 480px;
+  min-height: 100vh;
+  padding: 22px 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  background:
+    radial-gradient(ellipse at center, #09251a 0%, #030906 75%);
+}
+
+.header {
+  width: 100%;
+  text-align: center;
+  border-bottom: 1px solid #1d8155;
+  padding-bottom: 14px;
+  letter-spacing: 4px;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 27px;
+  text-shadow: 0 0 12px #37ff91;
+}
+
+.header p {
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: #43b8b7;
+}
+
+.status {
+  color: #6dffae;
+  font-size: 12px;
+  letter-spacing: 2px;
+  animation: pulse 2s infinite;
+}
+
+.radar {
+  width: min(82vw, 350px);
+  aspect-ratio: 1;
+  border: 2px solid #36eaa0;
+  border-radius: 50%;
+  position: relative;
+  overflow: hidden;
+  background:
+    repeating-radial-gradient(
+      circle,
+      transparent 0 18%,
+      #14563e 18.5% 19%,
+      transparent 19.5% 29%
+    ),
+    linear-gradient(90deg, transparent 49.7%, #176d50 50%, transparent 50.3%),
+    linear-gradient(transparent 49.7%, #176d50 50%, transparent 50.3%),
+    #04140e;
+  box-shadow:
+    0 0 12px #1cff96,
+    inset 0 0 25px #13794d;
+}
+
+.radar::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    transparent 290deg,
+    #0cff8730 325deg,
+    #48ffb6a0 355deg,
+    transparent 360deg
+  );
+  border-radius: 50%;
+  animation: sweep 4s linear infinite;
+}
+
+.radar::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #b6ffe0;
+  box-shadow: 0 0 12px #39ffa0;
+  transform: translate(-50%, -50%);
+}
+
+.axis {
+  position: absolute;
+  z-index: 1;
+  color: #43b8b7;
+  font-size: 10px;
+}
+
+.north { top: 8px; left: 50%; transform: translateX(-50%); }
+.east { right: 8px; top: 50%; transform: translateY(-50%); }
+.south { bottom: 8px; left: 50%; transform: translateX(-50%); }
+.west { left: 8px; top: 50%; transform: translateY(-50%); }
+
+.target {
+  position: absolute;
+  top: 28%;
+  left: 66%;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #69fff6;
+  box-shadow: 0 0 15px 5px #14f4dc80;
+  animation: targetPulse 1.5s infinite;
+}
+
+.metrics {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.metric {
+  border: 1px solid #237b54;
+  background: #06170f;
+  padding: 14px 8px;
+  text-align: center;
+}
+
+.metric span {
+  display: block;
+  font-size: 10px;
+  color: #55bba0;
+  letter-spacing: 2px;
+}
+
+.metric strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 25px;
+  text-shadow: 0 0 8px #31ff99;
+}
+
+.footer {
+  margin-top: auto;
+  padding-top: 10px;
+  color: #317d60;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-align: center;
+}
+
+@keyframes sweep {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes targetPulse {
+  50% { opacity: .25; transform: scale(.65); }
+}
+
+@keyframes pulse {
+  50% { opacity: .45; }
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+  <header class="header">
+    <h1>P K E</h1>
+    <p>PARANORMAL DETECTION SYSTEM</p>
+  </header>
+
+  <div class="status">● SCANNING AREA</div>
+
+  <div class="radar">
+    <span class="axis north">N</span>
+    <span class="axis east">E</span>
+    <span class="axis south">S</span>
+    <span class="axis west">W</span>
+    <span class="target"></span>
+  </div>
+
+  <div class="metrics">
+    <div class="metric">
+      <span>PKE LEVEL</span>
+      <strong id="pke">018</strong>
+    </div>
+    <div class="metric">
+      <span>ENTITY SIGNAL</span>
+      <strong id="signal">LOW</strong>
+    </div>
+    <div class="metric">
+      <span>SCAN MODE</span>
+      <strong>AUTO</strong>
+    </div>
+    <div class="metric">
+      <span>STATUS</span>
+      <strong>READY</strong>
+    </div>
+  </div>
+
+  <div class="footer">
+    FIELD UNIT // PKE-MK IV<br>
+    GHOSTBUSTERS RESEARCH DIVISION
+  </div>
+
+</div>
+
+<script>
+const pke = document.getElementById("pke");
+const signal = document.getElementById("signal");
+
+function updateReadings() {
+  pke.textContent = String(
+    Math.floor(12 + Math.random() * 15)
+  ).padStart(3, "0");
+
+  const signals = ["LOW", "LOW", "LOW", "TRACE"];
+  signal.textContent =
+    signals[Math.floor(Math.random() * signals.length)];
+}
+
+setInterval(updateReadings, 1200);
+</script>
+</body>
+</html>
