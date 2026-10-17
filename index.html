@@ -141,7 +141,7 @@ body {
   transition:
     top 0.7s ease,
     left 0.7s ease,
-    opacity 0.35s,
+    opacity 0.20s,
     transform 0.2s,
     box-shadow 0.2s;
   z-index: 2;
@@ -424,7 +424,7 @@ function animateRadar(now) {
   // y el barrido pasa por su posición.
   const sweepDifference = angleDifference(sweepAngle, targetAngle);
 
-  if (signalActive && sweepDifference <= 30) {
+  if (signalActive && sweepDifference <= 14) {
   lastFlashTime = now;
 }
 
