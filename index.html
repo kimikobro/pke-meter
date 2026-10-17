@@ -139,8 +139,8 @@ body {
   opacity: 0;
   transform: translate(-50%, -50%) scale(0.5);
   transition:
-    top 0.8s ease-in-out,
-    left 0.8s ease-in-out,
+    top 0.45s ease-in-out,
+    left 0.45s ease-in-out,
     opacity 0.3s,
     transform 0.2s,
     box-shadow 0.2s;
@@ -435,6 +435,7 @@ const sweepDifference = angleDifference(
 );
 
 
+ 
  // Detectar el punto cuando el barrido lo alcanza.
 if (
   signalActive &&
@@ -448,32 +449,33 @@ if (
   targetMoving = true;
 }
 
-// Después del destello, cambiar la posición
-// mientras el punto todavía está visible.
-if (targetMoving && now - targetMoveTime >= 350) {
-  targetAngle = Math.random() * 180 - 90;
-  targetDistance = 18 + Math.random() * 14;
+// Moverlo un poquito mientras todavía está visible.
+if (targetMoving && now - targetMoveTime >= 180) {
+  targetMoving = false;
 
-  targetX = 50 + Math.sin(targetAngle * Math.PI / 180) * targetDistance;
-  targetY = 30 - Math.abs(Math.cos(targetAngle * Math.PI / 180)) * 18;
+  // Desplazamiento corto desde su posición actual.
+  targetX = Math.max(15, Math.min(85,
+    targetX + (Math.random() * 6 - 3)
+  ));
+
+  targetY = Math.max(12, Math.min(42,
+    targetY + (Math.random() * 6 - 3)
+  ));
 
   target.style.setProperty("--target-x", `${targetX}%`);
   target.style.setProperty("--target-y", `${targetY}%`);
 
-  // Mantenerlo visible mientras se desliza.
-  targetMoveTime = now;
-  targetMoving = false;
-
-  // Ocultarlo después de que termine el desplazamiento.
+  // Desaparecer poco después del movimiento.
   setTimeout(() => {
     target.classList.remove("flash");
-  }, 850);
+  }, 500);
 }
 
-// Volver a esperar cuando el barrido se aleje.
+// Preparar la siguiente detección cuando la barra se aleje.
 if (!targetMoving && sweepDifference > 20) {
   targetWaitingForSweep = true;
 }
+
 
  
 
