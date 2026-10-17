@@ -141,7 +141,7 @@ body {
   transition:
     top 0.7s ease,
     left 0.7s ease,
-    opacity 0.5s,
+    opacity 0.3s,
     transform 0.2s,
     box-shadow 0.2s;
   z-index: 2;
@@ -428,7 +428,7 @@ function animateRadar(now) {
   lastFlashTime = now;
 }
 
-if (signalActive && lastFlashTime > 0 && now - lastFlashTime < 250) {
+if (signalActive && lastFlashTime > 0 && now - lastFlashTime < 150) {
   target.classList.add("flash");
 } else {
   target.classList.remove("flash");
