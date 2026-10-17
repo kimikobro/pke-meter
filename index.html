@@ -434,7 +434,8 @@ const sweepDifference = angleDifference(
   pointAngle
 );
 
-// Detectar el punto cuando el barrido lo alcanza.
+
+ // Detectar el punto cuando el barrido lo alcanza.
 if (
   signalActive &&
   targetWaitingForSweep &&
@@ -447,11 +448,9 @@ if (
   targetMoving = true;
 }
 
-// Esperar a que termine el destello antes de mover el punto.
+// Después del destello, cambiar la posición
+// mientras el punto todavía está visible.
 if (targetMoving && now - targetMoveTime >= 350) {
-  targetMoving = false;
-  target.classList.remove("flash");
-
   targetAngle = Math.random() * 180 - 90;
   targetDistance = 18 + Math.random() * 14;
 
@@ -460,12 +459,22 @@ if (targetMoving && now - targetMoveTime >= 350) {
 
   target.style.setProperty("--target-x", `${targetX}%`);
   target.style.setProperty("--target-y", `${targetY}%`);
+
+  // Mantenerlo visible mientras se desliza.
+  targetMoveTime = now;
+  targetMoving = false;
+
+  // Ocultarlo después de que termine el desplazamiento.
+  setTimeout(() => {
+    target.classList.remove("flash");
+  }, 850);
 }
 
-// Volver a esperar cuando el barrido se aleje del punto.
+// Volver a esperar cuando el barrido se aleje.
 if (!targetMoving && sweepDifference > 20) {
   targetWaitingForSweep = true;
 }
+
  
 
   requestAnimationFrame(animateRadar);
