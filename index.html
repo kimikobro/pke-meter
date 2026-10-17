@@ -298,6 +298,7 @@ let signalActive = false;
 let lastFlashTime = 0;
 let targetMoving = false;
 let targetMoveTime = 0;
+let targetWaitingForSweep = true;
 
 function normalize(deg) {
   return ((deg % 360) + 360) % 360;
@@ -433,21 +434,23 @@ const sweepDifference = angleDifference(
   pointAngle
 );
 
-// Detectar cuándo el barrido alcanza el punto.
+// Detectar el punto cuando el barrido lo alcanza.
 if (
   signalActive &&
+  targetWaitingForSweep &&
   !targetMoving &&
-  sweepDifference <= 14
+  sweepDifference <= 8
 ) {
-  lastFlashTime = now;
   target.classList.add("flash");
-  targetMoving = true;
+  targetWaitingForSweep = false;
   targetMoveTime = now;
+  targetMoving = true;
 }
 
-// Después del destello, deslizar el punto a otra posición.
-if (targetMoving && now - targetMoveTime >= 250) {
+// Esperar a que termine el destello antes de mover el punto.
+if (targetMoving && now - targetMoveTime >= 350) {
   targetMoving = false;
+  target.classList.remove("flash");
 
   targetAngle = Math.random() * 180 - 90;
   targetDistance = 18 + Math.random() * 14;
@@ -457,13 +460,11 @@ if (targetMoving && now - targetMoveTime >= 250) {
 
   target.style.setProperty("--target-x", `${targetX}%`);
   target.style.setProperty("--target-y", `${targetY}%`);
-
-  target.classList.remove("flash");
 }
 
-// Preparar una nueva posición cuando termina el desplazamiento.
-if (!targetMoving && now - lastSweepTime >= 2000) {
-  lastSweepTime = now;
+// Volver a esperar cuando el barrido se aleje del punto.
+if (!targetMoving && sweepDifference > 20) {
+  targetWaitingForSweep = true;
 }
  
 
