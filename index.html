@@ -529,18 +529,11 @@ function setTarget() {
 startButton.addEventListener("click", startCompass);
 targetButton.addEventListener("click", setTarget);
 
-targetButton.addEventListener("click", () => navigator.vibrate(500));
+targetButton.addEventListener("click", () => {
+  alert("Vibración disponible: " + (typeof navigator.vibrate));
+});
 
 const radarElement = document.querySelector(".radar");
-
-function animateRadar(now) {
-  // Giro continuo del barrido: una vuelta cada 2 segundos.
-  sweepAngle = ((now % 2000) / 2000) * 360;
-
-  radarElement.style.setProperty(
-    "--sweep-angle",
-    `${sweepAngle}deg`
-  );
 
   
   // El punto destella únicamente si la detección está activa
