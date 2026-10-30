@@ -608,8 +608,13 @@ async function startCompass() {
 }
 
 function setTarget() {
+  if (!compassActive) {
+    status.textContent = "● ACTIVATE PKE FIRST";
+    return;
+  }
+
   if (currentHeading === null) {
-    status.textContent = "● ACTIVATE COMPASS FIRST";
+    status.textContent = "● WAITING FOR COMPASS";
     return;
   }
 
