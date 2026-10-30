@@ -437,12 +437,10 @@ function updateDetection() {
     if (difference <= 4) {
   if (!wasDetected) {
     wasDetected = true;
+    if ("vibrate" in navigator) {
+      navigator.vibrate([60, 60]);
+    }
   }
-
-  if ("vibrate" in navigator) {
-    navigator.vibrate(120);
-  }
-
 } else {
   if (wasDetected && "vibrate" in navigator) {
     navigator.vibrate(0);
