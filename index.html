@@ -144,6 +144,8 @@ body {
 }
 
 .radar::before {
+  opacity: 0;
+  transition: opacity .3s;
   content: "";
   position: absolute;
   inset: 0;
@@ -158,6 +160,9 @@ body {
 );
   border-radius: 50%;
   transform: rotate(var(--sweep-angle, 0deg));
+}
+.radar.scanning::before {
+  opacity: 1;
 }
 
 .radar::after {
@@ -374,6 +379,8 @@ let targetHeading = null;
 let compassActive = false;
 let sweepAngle = 0;
 let lastSweepTime = 0;
+let radarActive = false;
+let sweepStartTime = null;
 let targetX = 66;
 let targetY = 28;
 let targetAngle = 0;
@@ -525,11 +532,21 @@ async function startCompass() {
     return;
   }
 
+  // Intentar iniciar el audio directamente desde el botón.
+  const audioPlayback = pkeAudio.play();
+
+  audioPlayback.catch(error => {
+    console.error("Error al reproducir el MP3:", error);
+    status.textContent = "● AUDIO ERROR";
+  });
+
   try {
     if (typeof DeviceOrientationEvent.requestPermission === "function") {
       const permission = await DeviceOrientationEvent.requestPermission();
 
       if (permission !== "granted") {
+        pkeAudio.pause();
+        pkeAudio.currentTime = 0;
         status.textContent = "● SENSOR PERMISSION DENIED";
         return;
       }
@@ -540,13 +557,17 @@ async function startCompass() {
 
     compassActive = true;
     pkeStatus.textContent = "READY";
+
+    // Activar el radar y comenzar el barrido desde cero.
+    radarActive = true;
+    sweepStartTime = null;
+    radarElement.classList.add("scanning");
+    requestAnimationFrame(animateRadar);
+
     status.textContent = "● CALIBRATING COMPASS";
 
-    pkeAudio.play().catch(error => {
-      console.warn("No se pudo reproducir el audio:", error);
-    });
-
   } catch (error) {
+    pkeAudio.pause();
     status.textContent = "● SENSOR ERROR";
     console.error(error);
   }
@@ -572,8 +593,14 @@ const radarElement = document.querySelector(".radar");
 
 function animateRadar(now) {
 
-  // Giro continuo del barrido: una vuelta cada 2 segundos.
-  sweepAngle = ((now % 2000) / 2000) * 360;
+    if (!radarActive) return;
+
+  if (sweepStartTime === null) {
+    sweepStartTime = now;
+  }
+
+  // Una vuelta completa cada 2 segundos.
+  sweepAngle = ((now - sweepStartTime) % 2000) / 2000 * 360;
 
   radarElement.style.setProperty(
     "--sweep-angle",
@@ -653,7 +680,6 @@ if (!targetMoving && sweepDifference > 20) {
   requestAnimationFrame(animateRadar);
 }
 
-requestAnimationFrame(animateRadar);
 
 </script>
 </body>
