@@ -32,8 +32,40 @@ body {
   align-items: center;
   gap: 18px;
   background:
-    radial-gradient(ellipse at center, #09251a 0%, #030906 75%);
+    radial-gradient(ellipse at center, #09251a 0%, #030906 75%);    
 }
+
+
+#screenFlash {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(
+    ellipse at center,
+    #39ff9140 0%,
+    #39ff9120 45%,
+    transparent 80%
+  );
+}
+
+#screenFlash.active {
+  animation: screenPulse 0.45s ease-out;
+}
+
+@keyframes screenPulse {
+  0% {
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
 
 .header {
   width: 100%;
@@ -219,7 +251,7 @@ body {
 
 <body>
 <div class="app">
-
+<div id="screenFlash"></div>
   <header class="header">
     <h1>P K E</h1>
     <p>PARANORMAL DETECTION SYSTEM</p>
@@ -280,6 +312,7 @@ const pke = document.getElementById("pke");
 const signal = document.getElementById("signal");
 const status = document.getElementById("status");
 const target = document.querySelector(".target");
+const screenFlash = document.getElementById("screenFlash");
 const headingDisplay = document.getElementById("heading");
 const targetDisplay = document.getElementById("targetHeading");
 const startButton = document.getElementById("startCompass");
@@ -440,8 +473,13 @@ if (
   targetWaitingForSweep &&
   !targetMoving &&
   sweepDifference <= 8
-) {
+) { 
   target.classList.add("flash");
+
+  screenFlash.classList.remove("active");
+  void screenFlash.offsetWidth;
+  screenFlash.classList.add("active");
+  
   targetWaitingForSweep = false;
   targetMoveTime = now;
   targetMoving = true;
@@ -466,7 +504,7 @@ if (targetMoving && now - targetMoveTime >= 180) {
   // Desaparecer poco después del movimiento.
   setTimeout(() => {
     target.classList.remove("flash");
-  }, 135);
+  }, 120);
 }
 
 // Preparar la siguiente detección cuando la barra se aleje.
