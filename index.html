@@ -45,13 +45,13 @@ body {
 
 .led-column span {
   display: block;
-  width: 9px;
-  height: 9px;
+  width: 15px;
+  height: 15px;
   border-radius: 50%;
   background: #123d2b;
   border: 1px solid #267d55;
-  box-shadow: 0 0 3px #176d50;
-  transition: background .2s, box-shadow .2s;
+  box-shadow: 0 0 4px #176d50;
+  transition: background .15s, box-shadow .15s;
 }
 
 .led-column.left span:nth-child(1) { transform: translateX(20px); }
@@ -76,7 +76,7 @@ body {
   background: #ffffff;
   border-color: #ffffff;
   box-shadow: 0 0 10px #ffffff, 0 0 22px #39ff91;
-  animation: ledPeak .35s infinite alternate;
+  animation: ledPeak .12s infinite alternate;
 }
 
 @keyframes ledPeak {
@@ -124,10 +124,7 @@ body {
 }
 
 .status {
-  color: #6dffae;
-  font-size: 12px;
-  letter-spacing: 2px;
-  animation: pulse 2s infinite;
+  display: none;
 }
 
 .radar {
@@ -402,7 +399,6 @@ function updateLEDs(difference) {
   const leftLEDs = document.querySelectorAll("#ledLeft span");
   const rightLEDs = document.querySelectorAll("#ledRight span");
 
-  // Cinco niveles según la cercanía a la dirección objetivo.
   let level = 0;
 
   if (difference <= 45) level = 1;
@@ -415,11 +411,13 @@ function updateLEDs(difference) {
     ledGroup.forEach((led, index) => {
       led.classList.remove("active", "peak");
 
-      if (index < level) {
+      // Encendido desde abajo hacia arriba.
+      if (index >= 5 - level) {
         led.classList.add("active");
       }
 
-      if (difference <= 4 && index === 4) {
+      // Último LED: parpadeo blanco.
+      if (difference <= 4 && index === 0) {
         led.classList.remove("active");
         led.classList.add("peak");
       }
