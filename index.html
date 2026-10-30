@@ -343,8 +343,8 @@ body {
       <strong>AUTO</strong>
     </div>
     <div class="metric">
-      <span>STATUS</span>
-      <strong>OFF</strong>
+     <span>STATUS</span> 
+     <strong id="pkeStatus">OFF</strong>
     </div>
   </div>
 
@@ -526,10 +526,9 @@ async function startCompass() {
   }
 
   try {
-        await pkeAudio.play();
-
     if (typeof DeviceOrientationEvent.requestPermission === "function") {
       const permission = await DeviceOrientationEvent.requestPermission();
+
       if (permission !== "granted") {
         status.textContent = "● SENSOR PERMISSION DENIED";
         return;
@@ -538,12 +537,18 @@ async function startCompass() {
 
     window.addEventListener("deviceorientationabsolute", onOrientation, true);
     window.addEventListener("deviceorientation", onOrientation, true);
+
     compassActive = true;
     pkeStatus.textContent = "READY";
-
     status.textContent = "● CALIBRATING COMPASS";
+
+    pkeAudio.play().catch(error => {
+      console.warn("No se pudo reproducir el audio:", error);
+    });
+
   } catch (error) {
     status.textContent = "● SENSOR ERROR";
+    console.error(error);
   }
 }
 
