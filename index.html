@@ -442,7 +442,6 @@ function stopDetectionSounds() {
   detectedBeep.currentTime = 0;
 }
 
-
 function updateDetection() {
   if (currentHeading === null || targetHeading === null) return;
 
@@ -532,8 +531,8 @@ if (difference <= 4) {
 }
   function onOrientation(event) {
   let heading = null;
- 
-  // Chrome en Android puede exponer el rumbo de brújula así.
+
+  // Leer rumbo de la brújula.
   if (typeof event.webkitCompassHeading === "number") {
     heading = event.webkitCompassHeading;
   } else if (event.absolute && typeof event.alpha === "number") {
@@ -544,21 +543,47 @@ if (difference <= 4) {
 
   currentHeading = normalize(heading);
 
-  if (typeof event.beta === "number") {
-  pkeStatus.textContent =
-    "BETA: " + Math.round(event.beta) + "°";
-}
+  // Comprobar inclinación vertical del teléfono.
+  if (typeof event.beta !== "number") return;
 
-if (targetHeading !== null && !searchStarted) {
-  if (angleDifference(currentHeading, searchOriginHeading) >= 8) {
-    searchStarted = true;
-    status.textContent = "● SEARCHING FOR ENTITY";
+  if (event.beta > 30) {
+    // Bloquear detección y apagar todos sus efectos.
+    signalActive = false;
+    stopDetectionSounds();
+
+    clearInterval(vibrationTimer);
+    vibrationTimer = null;
+    wasDetected = false;
+
+    if ("vibrate" in navigator) {
+      navigator.vibrate(0);
+    }
+
+    document.querySelectorAll(
+      "#ledLeft span, #ledRight span"
+    ).forEach(led => {
+      led.classList.remove("active", "peak", "peak-on");
+    });
+
+    target.classList.remove("trace", "detected", "flash");
+
+    status.textContent = "● SCAN ANGLE INVALID";
+    signal.textContent = "LOW";
+    pke.textContent = "000";
+
+    return;
   }
-}
 
-if (searchStarted) {
-  updateDetection();
-}
+  if (targetHeading !== null && !searchStarted) {
+    if (angleDifference(currentHeading, searchOriginHeading) >= 8) {
+      searchStarted = true;
+      status.textContent = "● SEARCHING FOR ENTITY";
+    }
+  }
+
+  if (searchStarted) {
+    updateDetection();
+  }
 }
 
 async function startCompass() {
@@ -766,8 +791,6 @@ const sweepDifference = angleDifference(
   pointAngle
 );
 
-
- 
  // Detectar el punto cuando el barrido lo alcanza.
 if (
   signalActive &&
@@ -781,17 +804,17 @@ if (
   targetMoving = true;
 }
 
-// Moverlo un poquito mientras todavía está visible.
+// Mover el Slime con desplazamiento moderado.
 if (targetMoving && now - targetMoveTime >= 180) {
   targetMoving = false;
 
-  // Desplazamiento corto desde su posición actual.
+  // Movimiento de hasta 8 puntos porcentuales.
   targetX = Math.max(15, Math.min(85,
-    targetX + (Math.random() * 10 - 5)
+    targetX + (Math.random() * 16 - 8)
   ));
 
   targetY = Math.max(12, Math.min(42,
-    targetY + (Math.random() * 10 - 5)
+    targetY + (Math.random() * 16 - 8)
   ));
 
   target.style.setProperty("--target-x", `${targetX}%`);
@@ -807,8 +830,10 @@ if (targetMoving && now - targetMoveTime >= 180) {
 if (!targetMoving && sweepDifference > 20) {
   targetWaitingForSweep = true;
 }
+
   requestAnimationFrame(animateRadar);
 }
+
 
 </script>
 </body>
