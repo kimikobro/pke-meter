@@ -6,6 +6,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PKE Meter</title>
 
+<!-- Configuración de la aplicación PKE -->
+<link rel="manifest" href="/pke-meter/manifest.json">
+<meta name="theme-color" content="#030906">
+<link rel="apple-touch-icon" href="/pke-meter/pke-icon-192.png">
+
 <style>
 * {
   box-sizing: border-box;
@@ -545,6 +550,11 @@ if (difference <= 4) {
 
   currentHeading = normalize(heading);
 
+  if (typeof event.beta === "number") {
+  pkeStatus.textContent =
+    "BETA: " + Math.round(event.beta) + "°";
+}
+
 if (targetHeading !== null && !searchStarted) {
   if (angleDifference(currentHeading, searchOriginHeading) >= 8) {
     searchStarted = true;
@@ -803,11 +813,8 @@ if (targetMoving && now - targetMoveTime >= 180) {
 if (!targetMoving && sweepDifference > 20) {
   targetWaitingForSweep = true;
 }
-
-
   requestAnimationFrame(animateRadar);
 }
-
 
 </script>
 </body>
