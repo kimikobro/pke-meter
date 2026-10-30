@@ -382,6 +382,7 @@ let targetY = 28;
 let targetAngle = 0;
 let targetDistance = 0;
 let signalActive = false;
+let wasDetected = false;
 let lastFlashTime = 0;
 let targetMoving = false;
 let targetMoveTime = 0;
@@ -432,6 +433,22 @@ function updateDetection() {
   signalActive = difference <= 6;
 
   updateLEDs(difference);
+
+    if (difference <= 4) {
+    if (!wasDetected) {
+      wasDetected = true;
+
+      if ("vibrate" in navigator) {
+        navigator.vibrate(0);
+        navigator.vibrate([120, 120, 120, 120, 120, 120, 120, 120]);
+      }
+    }
+  } else {
+    if (wasDetected && "vibrate" in navigator) {
+      navigator.vibrate(0);
+    }
+    wasDetected = false;
+  }
 
   headingDisplay.textContent = Math.round(currentHeading);
 
