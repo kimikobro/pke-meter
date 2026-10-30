@@ -22,6 +22,74 @@ body {
   align-items: center;
 }
 
+.pke-panel {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 5px;
+  padding: 10px 0;
+}
+
+.pke-controls {
+  text-align: center;
+  z-index: 2;
+}
+
+.led-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.led-column span {
+  display: block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #123d2b;
+  border: 1px solid #267d55;
+  box-shadow: 0 0 3px #176d50;
+  transition: background .2s, box-shadow .2s;
+}
+
+.led-column.left span:nth-child(1) { transform: translateX(20px); }
+.led-column.left span:nth-child(2) { transform: translateX(10px); }
+.led-column.left span:nth-child(3) { transform: translateX(0); }
+.led-column.left span:nth-child(4) { transform: translateX(-10px); }
+.led-column.left span:nth-child(5) { transform: translateX(-20px); }
+
+.led-column.right span:nth-child(1) { transform: translateX(-20px); }
+.led-column.right span:nth-child(2) { transform: translateX(-10px); }
+.led-column.right span:nth-child(3) { transform: translateX(0); }
+.led-column.right span:nth-child(4) { transform: translateX(10px); }
+.led-column.right span:nth-child(5) { transform: translateX(20px); }
+
+.led-column span.active {
+  background: #39ff91;
+  border-color: #aaffd0;
+  box-shadow: 0 0 7px #39ff91, 0 0 14px #19ff83;
+}
+
+.led-column span.peak {
+  background: #ffffff;
+  border-color: #ffffff;
+  box-shadow: 0 0 10px #ffffff, 0 0 22px #39ff91;
+  animation: ledPeak .35s infinite alternate;
+}
+
+@keyframes ledPeak {
+  from {
+    opacity: .45;
+    box-shadow: 0 0 5px #ffffff;
+  }
+  to {
+    opacity: 1;
+    box-shadow: 0 0 15px #ffffff, 0 0 25px #39ff91;
+  }
+}
+
 .app {
   width: 100%;
   max-width: 480px;
@@ -32,40 +100,8 @@ body {
   align-items: center;
   gap: 18px;
   background:
-    radial-gradient(ellipse at center, #09251a 0%, #030906 75%);    
+    radial-gradient(ellipse at center, #09251a 0%, #030906 75%);
 }
-
-
-#screenFlash {
-  position: fixed;
-  inset: 0;
-  z-index: 10;
-  pointer-events: none;
-  opacity: 0;
-  background: radial-gradient(
-    ellipse at center,
-    #39ff9140 0%,
-    #39ff9120 45%,
-    transparent 80%
-  );
-}
-
-#screenFlash.active {
-  animation: screenPulse 0.45s ease-out;
-}
-
-@keyframes screenPulse {
-  0% {
-    opacity: 0;
-  }
-  25% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-  }
-}
-
 
 .header {
   width: 100%;
@@ -251,7 +287,7 @@ body {
 
 <body>
 <div class="app">
-<div id="screenFlash"></div>
+
   <header class="header">
     <h1>P K E</h1>
     <p>PARANORMAL DETECTION SYSTEM</p>
@@ -259,17 +295,39 @@ body {
 
   <div class="status" id="status">● SCANNING AREA</div>
 
-<div style="text-align:center;font-size:12px;line-height:1.8">
-  HEADING: <strong id="heading">---</strong>°
-  <br>
-  TARGET: <strong id="targetHeading">---</strong>°
-  <br>
-  <button id="startCompass" style="padding:10px;background:#09251a;color:#65ffad;border:1px solid #36eaa0;font-family:Consolas,monospace">
-    ACTIVATE PKE
-  </button>
-  <button id="setTarget" style="padding:10px;background:#09251a;color:#65ffad;border:1px solid #36eaa0;font-family:Consolas,monospace">
-    SET DIRECTION
-  </button>
+<div class="pke-panel">
+
+  <div class="led-column left" id="ledLeft">
+    <span></span>
+    <span></span>
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+
+  <div class="pke-controls">
+    <div style="text-align:center;font-size:12px;line-height:1.8">
+      HEADING: <strong id="heading">---</strong>°
+      <br>
+      TARGET: <strong id="targetHeading">---</strong>°
+      <br>
+      <button id="startCompass" style="padding:10px;background:#09251a;color:#65ffad;border:1px solid #36eaa0;font-family:Consolas,monospace">
+        ACTIVATE PKE
+      </button>
+      <button id="setTarget" style="padding:10px;background:#09251a;color:#65ffad;border:1px solid #36eaa0;font-family:Consolas,monospace">
+        SET DIRECTION
+      </button>
+    </div>
+  </div>
+
+  <div class="led-column right" id="ledRight">
+    <span></span>
+    <span></span>
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+
 </div>
 
   <div class="radar">
@@ -312,7 +370,6 @@ const pke = document.getElementById("pke");
 const signal = document.getElementById("signal");
 const status = document.getElementById("status");
 const target = document.querySelector(".target");
-const screenFlash = document.getElementById("screenFlash");
 const headingDisplay = document.getElementById("heading");
 const targetDisplay = document.getElementById("targetHeading");
 const startButton = document.getElementById("startCompass");
@@ -341,12 +398,42 @@ function angleDifference(a, b) {
   return Math.abs(((a - b + 540) % 360) - 180);
 }
 
+function updateLEDs(difference) {
+  const leftLEDs = document.querySelectorAll("#ledLeft span");
+  const rightLEDs = document.querySelectorAll("#ledRight span");
+
+  // Cinco niveles según la cercanía a la dirección objetivo.
+  let level = 0;
+
+  if (difference <= 45) level = 1;
+  if (difference <= 30) level = 2;
+  if (difference <= 20) level = 3;
+  if (difference <= 10) level = 4;
+  if (difference <= 4) level = 5;
+
+  [leftLEDs, rightLEDs].forEach(ledGroup => {
+    ledGroup.forEach((led, index) => {
+      led.classList.remove("active", "peak");
+
+      if (index < level) {
+        led.classList.add("active");
+      }
+
+      if (difference <= 4 && index === 4) {
+        led.classList.remove("active");
+        led.classList.add("peak");
+      }
+    });
+  });
+}
 
 function updateDetection() {
   if (currentHeading === null || targetHeading === null) return;
 
   const difference = angleDifference(currentHeading, targetHeading);
   signalActive = difference <= 6;
+
+  updateLEDs(difference);
 
   headingDisplay.textContent = Math.round(currentHeading);
 
@@ -473,13 +560,8 @@ if (
   targetWaitingForSweep &&
   !targetMoving &&
   sweepDifference <= 8
-) { 
+) {
   target.classList.add("flash");
-
-  screenFlash.classList.remove("active");
-  void screenFlash.offsetWidth;
-  screenFlash.classList.add("active");
-  
   targetWaitingForSweep = false;
   targetMoveTime = now;
   targetMoving = true;
