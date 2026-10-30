@@ -529,6 +529,8 @@ function setTarget() {
 startButton.addEventListener("click", startCompass);
 targetButton.addEventListener("click", setTarget);
 
+targetButton.addEventListener("click", () => navigator.vibrate(500));
+
 const radarElement = document.querySelector(".radar");
 
 function animateRadar(now) {
