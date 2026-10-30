@@ -75,19 +75,13 @@ body {
 .led-column span.peak {
   background: #ffffff;
   border-color: #ffffff;
-  box-shadow: 0 0 10px #ffffff, 0 0 22px #39ff91;
-  animation: ledPeak .12s infinite alternate;
+  box-shadow: 0 0 5px #ffffff;
+  opacity: .45;
 }
 
-@keyframes ledPeak {
-  from {
-    opacity: .45;
-    box-shadow: 0 0 5px #ffffff;
-  }
-  to {
-    opacity: 1;
-    box-shadow: 0 0 15px #ffffff, 0 0 25px #39ff91;
-  }
+.led-column span.peak.peak-on {
+  opacity: 1;
+  box-shadow: 0 0 15px #ffffff, 0 0 25px #39ff91;
 }
 
 .app {
@@ -436,27 +430,44 @@ function updateDetection() {
   updateLEDs(difference);
 
     if (difference <= 4) {
-     if (!wasDetected) {
+  if (!wasDetected) {
     wasDetected = true;
 
-      if ("vibrate" in navigator) {
-      navigator.vibrate(60);
+    const peakLEDs = document.querySelectorAll(
+      "#ledLeft span:first-child, #ledRight span:first-child"
+    );
 
-      vibrationTimer = setInterval(() => {
-        if (wasDetected) {
-          navigator.vibrate(60);
-        }
-      }, 120);
+    let peakOn = true;
+
+    peakLEDs.forEach(led => led.classList.add("peak-on"));
+
+    if ("vibrate" in navigator) {
+      navigator.vibrate(60);
     }
+
+    vibrationTimer = setInterval(() => {
+      peakOn = !peakOn;
+
+      peakLEDs.forEach(led => {
+        led.classList.toggle("peak-on", peakOn);
+      });
+
+      if ("vibrate" in navigator) {
+        navigator.vibrate(peakOn ? 60 : 0);
+      }
+    }, 120);
   }
+
 } else {
   if (wasDetected) {
-    if (vibrationTimer !== null) {
-      clearInterval(vibrationTimer);
-      vibrationTimer = null;
-    }
+    clearInterval(vibrationTimer);
+    vibrationTimer = null;
 
-     if ("vibrate" in navigator) {
+    document.querySelectorAll(".peak-on").forEach(led => {
+      led.classList.remove("peak-on");
+    });
+
+    if ("vibrate" in navigator) {
       navigator.vibrate(0);
     }
   }
