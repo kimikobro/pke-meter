@@ -569,6 +569,7 @@ async function startCompass() {
 
     compassActive = true;
     pkeStatus.textContent = "READY";
+    startButton.textContent = "DEACTIVATE PKE";
 
     // Activar el radar y comenzar el barrido desde cero.
     radarActive = true;
@@ -623,10 +624,69 @@ function setTarget() {
   status.textContent = "● TARGET LOCKED - MOVE TO SCAN";
 }
 
-startButton.addEventListener("click", startCompass);
+startButton.addEventListener("click", () => {
+  if (compassActive) {
+    deactivateCompass();
+  } else {
+    startCompass();
+  }
+});
+
 targetButton.addEventListener("click", setTarget);
 
+function deactivateCompass() {
 
+  // Detener la brújula.
+  compassActive = false;
+  window.removeEventListener("deviceorientationabsolute", onOrientation, true);
+  window.removeEventListener("deviceorientation", onOrientation, true);
+
+  // Apagar el radar.
+  radarActive = false;
+  radarElement.classList.remove("scanning");
+
+  // Detener el audio ambiental.
+  pkeAudio.pause();
+  pkeAudio.currentTime = 0;
+
+  // Detener detección y vibración.
+  signalActive = false;
+  searchStarted = false;
+  targetHeading = null;
+  searchOriginHeading = null;
+  wasDetected = false;
+
+  clearInterval(vibrationTimer);
+  vibrationTimer = null;
+
+  if ("vibrate" in navigator) {
+    navigator.vibrate(0);
+  }
+
+  // Apagar todos los LED.
+  document.querySelectorAll("#ledLeft span, #ledRight span").forEach(led => {
+    led.classList.remove("active", "peak", "peak-on");
+  });
+
+  // Ocultar el punto del fantasma.
+  target.classList.remove("trace", "detected", "flash");
+
+  // Restablecer indicadores.
+  pke.textContent = "000";
+  signal.textContent = "SEARCHING";
+  headingDisplay.textContent = "---";
+  targetDisplay.textContent = "---";
+  pkeStatus.textContent = "OFF";
+  status.textContent = "● PKE DEACTIVATED";
+
+  // Preparar el botón para volver a encender.
+  startButton.textContent = "ACTIVATE PKE";
+
+  // Reiniciar la búsqueda.
+  targetWaitingForSweep = true;
+  targetMoving = false;
+  sweepStartTime = null;
+}
 
 const radarElement = document.querySelector(".radar");
 
