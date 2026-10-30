@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -374,6 +375,8 @@ const pkeAudio = document.getElementById("pkeAudio");
 const pkeStatus = document.getElementById("pkeStatus");
 
 let currentHeading = null;
+let searchOriginHeading = null;
+let searchStarted = false;
 let targetHeading = null;
 let compassActive = false;
 let sweepAngle = 0;
@@ -520,7 +523,17 @@ function onOrientation(event) {
   if (heading === null || !Number.isFinite(heading)) return;
 
   currentHeading = normalize(heading);
+
+if (targetHeading !== null && !searchStarted) {
+  if (angleDifference(currentHeading, searchOriginHeading) >= 8) {
+    searchStarted = true;
+    status.textContent = "● SEARCHING FOR ENTITY";
+  }
+}
+
+if (searchStarted) {
   updateDetection();
+}
 }
 
 async function startCompass() {
@@ -579,8 +592,35 @@ function setTarget() {
   }
 
   targetHeading = currentHeading;
+  searchOriginHeading = currentHeading;
+  searchStarted = false;
+
+  targetMoving = false;
+  targetWaitingForSweep = true;
+  target.classList.remove("flash");
+
   targetDisplay.textContent = Math.round(targetHeading);
-  updateDetection();
+
+  // Mantener ocultos los efectos hasta comenzar a buscar.
+  signalActive = false;
+  wasDetected = false;
+
+  clearInterval(vibrationTimer);
+  vibrationTimer = null;
+
+  if ("vibrate" in navigator) {
+    navigator.vibrate(0);
+  }
+
+  document.querySelectorAll("#ledLeft span, #ledRight span").forEach(led => {
+    led.classList.remove("active", "peak", "peak-on");
+  });
+
+  target.classList.remove("trace", "detected", "flash");
+
+  pke.textContent = "000";
+  signal.textContent = "READY";
+  status.textContent = "● TARGET LOCKED - MOVE TO SCAN";
 }
 
 startButton.addEventListener("click", startCompass);
