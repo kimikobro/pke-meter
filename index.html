@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -9,6 +10,7 @@
 * {
   box-sizing: border-box;
 }
+
 body {
   margin: 0;
   min-height: 100vh;
@@ -370,6 +372,14 @@ const targetDisplay = document.getElementById("targetHeading");
 const startButton = document.getElementById("startCompass");
 const targetButton = document.getElementById("setTarget");
 const pkeAudio = document.getElementById("pkeAudio");
+const traceBeep = new Audio("trace-beep.mp3");
+const detectedBeep = new Audio("detected-beep.mp3");
+
+traceBeep.loop = true;
+detectedBeep.loop = true;
+traceBeep.volume = 0.5;
+detectedBeep.volume = 0.8;
+
 const pkeStatus = document.getElementById("pkeStatus");
 
 let currentHeading = null;
@@ -431,6 +441,15 @@ function updateLEDs(difference) {
   });
 }
 
+function stopDetectionSounds() {
+  traceBeep.pause();
+  traceBeep.currentTime = 0;
+
+  detectedBeep.pause();
+  detectedBeep.currentTime = 0;
+}
+
+
 function updateDetection() {
   if (currentHeading === null || targetHeading === null) return;
 
@@ -439,56 +458,85 @@ function updateDetection() {
 
   updateLEDs(difference);
 
-    if (difference <= 4) {
-  if (!wasDetected) {
-    wasDetected = true;
-
-    const peakLEDs = document.querySelectorAll(
-      "#ledLeft span:first-child, #ledRight span:first-child"
-    );
-
-    let peakOn = true;
-
-    peakLEDs.forEach(led => led.classList.add("peak-on"));
-
-    if ("vibrate" in navigator) {
-      navigator.vibrate(60);
+  // Control de sonidos según la distancia al objetivo.
+  if (difference <= 4) {
+    if (traceBeep.paused) {
+      traceBeep.pause();
+      traceBeep.currentTime = 0;
     }
 
-    vibrationTimer = setInterval(() => {
-      peakOn = !peakOn;
+    if (detectedBeep.paused) {
+      detectedBeep.currentTime = 0;
+      detectedBeep.play().catch(error =>
+        console.error("Error en sonido DETECTED:", error)
+      );
+    }
+  } else if (difference <= 6) {
+    if (!detectedBeep.paused) {
+      detectedBeep.pause();
+      detectedBeep.currentTime = 0;
+    }
 
-      peakLEDs.forEach(led => {
-        led.classList.toggle("peak-on", peakOn);
+    if (traceBeep.paused) {
+      traceBeep.currentTime = 0;
+      traceBeep.play().catch(error =>
+        console.error("Error en sonido TRACE:", error)
+      );
+    }
+  } else {
+    stopDetectionSounds();
+  }
+
+  // DETECTED: LED y vibración.
+  if (difference <= 4) {
+    if (!wasDetected) {
+      wasDetected = true;
+
+      const peakLEDs = document.querySelectorAll(
+        "#ledLeft span:first-child, #ledRight span:first-child"
+      );
+
+      let peakOn = true;
+
+      peakLEDs.forEach(led => led.classList.add("peak-on"));
+
+      if ("vibrate" in navigator) {
+        navigator.vibrate(60);
+      }
+
+      vibrationTimer = setInterval(() => {
+        peakOn = !peakOn;
+
+        peakLEDs.forEach(led => {
+          led.classList.toggle("peak-on", peakOn);
+        });
+
+        if ("vibrate" in navigator) {
+          navigator.vibrate(peakOn ? 60 : 0);
+        }
+      }, 120);
+    }
+  } else {
+    if (wasDetected) {
+      clearInterval(vibrationTimer);
+      vibrationTimer = null;
+
+      document.querySelectorAll(".peak-on").forEach(led => {
+        led.classList.remove("peak-on");
       });
 
       if ("vibrate" in navigator) {
-        navigator.vibrate(peakOn ? 60 : 0);
+        navigator.vibrate(0);
       }
-    }, 120);
-  }
-
-} else {
-  if (wasDetected) {
-    clearInterval(vibrationTimer);
-    vibrationTimer = null;
-
-    document.querySelectorAll(".peak-on").forEach(led => {
-      led.classList.remove("peak-on");
-    });
-
-    if ("vibrate" in navigator) {
-      navigator.vibrate(0);
     }
-  }
 
-  wasDetected = false;
-}
+    wasDetected = false;
+  }
 
   headingDisplay.textContent = Math.round(currentHeading);
 
   // El punto solo destella cuando el barrido lo alcanza.
-target.classList.remove("trace", "detected");
+  target.classList.remove("trace", "detected");
 
   if (difference <= 4) {
     status.textContent = "● PKE SIGNAL DETECTED";
@@ -506,11 +554,9 @@ target.classList.remove("trace", "detected");
     pke.textContent = String(Math.max(0, Math.round(30 - difference / 3))).padStart(3, "0");
   }
 }
-
-
-function onOrientation(event) {
+  function onOrientation(event) {
   let heading = null;
-
+ 
   // Chrome en Android puede exponer el rumbo de brújula así.
   if (typeof event.webkitCompassHeading === "number") {
     heading = event.webkitCompassHeading;
@@ -646,6 +692,9 @@ function deactivateCompass() {
   // Detener el audio ambiental.
   pkeAudio.pause();
   pkeAudio.currentTime = 0;
+
+  // Detener los sonidos de detección.
+  stopDetectionSounds();
 
   // Detener detección y vibración.
   signalActive = false;
