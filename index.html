@@ -533,6 +533,16 @@ targetButton.addEventListener("click", setTarget);
 
 const radarElement = document.querySelector(".radar");
 
+function animateRadar(now) {
+
+  // Giro continuo del barrido: una vuelta cada 2 segundos.
+  sweepAngle = ((now % 2000) / 2000) * 360;
+
+  radarElement.style.setProperty(
+    "--sweep-angle",
+    `${sweepAngle}deg`
+  );
+
   
   // El punto destella únicamente si la detección está activa
   // y el barrido pasa por su posición.
