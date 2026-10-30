@@ -344,7 +344,7 @@ body {
     </div>
     <div class="metric">
       <span>STATUS</span>
-      <strong>READY</strong>
+      <strong>OFF</strong>
     </div>
   </div>
 
@@ -355,6 +355,7 @@ body {
 
 </div>
 
+<audio id="pkeAudio" src="pke funcionamiento.mp3" loop preload="auto"></audio>
 
 <script>
 const pke = document.getElementById("pke");
@@ -365,6 +366,8 @@ const headingDisplay = document.getElementById("heading");
 const targetDisplay = document.getElementById("targetHeading");
 const startButton = document.getElementById("startCompass");
 const targetButton = document.getElementById("setTarget");
+const pkeAudio = document.getElementById("pkeAudio");
+const pkeStatus = document.getElementById("pkeStatus");
 
 let currentHeading = null;
 let targetHeading = null;
@@ -523,6 +526,8 @@ async function startCompass() {
   }
 
   try {
+        await pkeAudio.play();
+
     if (typeof DeviceOrientationEvent.requestPermission === "function") {
       const permission = await DeviceOrientationEvent.requestPermission();
       if (permission !== "granted") {
@@ -534,6 +539,8 @@ async function startCompass() {
     window.addEventListener("deviceorientationabsolute", onOrientation, true);
     window.addEventListener("deviceorientation", onOrientation, true);
     compassActive = true;
+    pkeStatus.textContent = "READY";
+
     status.textContent = "● CALIBRATING COMPASS";
   } catch (error) {
     status.textContent = "● SENSOR ERROR";
