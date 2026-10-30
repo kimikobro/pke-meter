@@ -836,5 +836,20 @@ if (!targetMoving && sweepDifference > 20) {
 
 
 </script>
+
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/pke-meter/service-worker.js")
+      .then(registration => {
+        console.log("PKE Service Worker activo:", registration.scope);
+      })
+      .catch(error => {
+        console.error("Error al registrar Service Worker:", error);
+      });
+  });
+}
+</script>
+
 </body>
 </html>
