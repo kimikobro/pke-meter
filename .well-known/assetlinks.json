@@ -1,0 +1,15 @@
+
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.kimikobro.pkemeter",
+      "sha256_cert_fingerprints": [
+        "E8:46:B0:1D:D7:5F:48:00:92:FF:3C:A1:C7:A6:99:D9:45:2F:D3:66:9B:3F:91:2E:AB:BF:F6:AD:DA:3A:99:CF"
+      ]
+    }
+  }
+]
